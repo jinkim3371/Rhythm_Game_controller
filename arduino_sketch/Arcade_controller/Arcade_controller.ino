@@ -16,28 +16,40 @@
 #include <Keyboard.h>
 
 // assign pins for each button
-int Bt_A = 1;
-int Bt_B = 2;
-int Bt_C = 3;
-int Bt_D = 4;
-int Bt_E = 5;
-int Bt_F = 6;
-int Bt_G = 7;
-int Bt_H = 8;
+int Bt_A = 2;
+int Bt_B = 3;
+int Bt_C = 4;
+int Bt_D = 5;
+int Bt_E = 6;
+int Bt_F = 7;
+int Bt_G = 8;
+int Bt_H = 9;
+
+
+
 
 // assign LED pins
-int BTALED = 9;
-int BTBLED = 10;
-int BTCLED = 11;
-int BTDLED = 12;
-int BTELED = 13;
-int BTFLED = 14;
-int BTGLED = 15;
-int BTHLED = 16;
+int BTALED = 10;
+int BTBLED = 11;
+int BTCLED = 12;
+int BTDLED = 14;
+int BTELED = 15;
+int BTFLED = 16;
+int BTGLED = 17;
+int BTHLED = 18;
+
+
+#define clpin 1
+#define dtpin 0
+#define swpin 21
+
+int encoderVal = 0;
+static int oldA = HIGH;
+static int oldB = HIGH;
+
 
 
 void setup() {
-//  HJpinMode(4, INPUT_PULLUP);   // START(I | 2)
   pinMode(Bt_A, INPUT_PULLUP);
   pinMode(Bt_B, INPUT_PULLUP);
   pinMode(Bt_C, INPUT_PULLUP);
@@ -55,6 +67,13 @@ void setup() {
   pinMode(BTFLED, OUTPUT);
   pinMode(BTGLED, OUTPUT);
   pinMode(BTHLED, OUTPUT);
+
+  pinMode (clpin, INPUT_PULLUP);
+  pinMode (dtpin, INPUT_PULLUP);
+  pinMode (swpin, INPUT);
+  digitalWrite (swpin, HIGH);
+  Serial.begin(9600);
+  
 }
 
 void loop() {
@@ -131,11 +150,11 @@ void loop() {
 
   ////////// button G //////////========================
   if (bControlG == LOW) {
-    Keyboard.press('k');
+    Keyboard.press('l');
     digitalWrite(BTGLED, HIGH);
   }
   else {
-    Keyboard.release('k');
+    Keyboard.release('l');
     digitalWrite(BTGLED, LOW);
   }
 
@@ -148,5 +167,55 @@ void loop() {
     Keyboard.release( 0xB1 );
     digitalWrite(BTHLED, LOW);
   }
+
+  ////////// Encoder //////////========================   
+  int change = getEncoderTurn();
+  encoderVal = encoderVal + change;
+  if (change > 0){
+    Keyboard.press( '+' ); 
+  }
+  else {
+    Keyboard.release( '+' );
+  }
+  if (change < 0){
+    Keyboard.press( '-' ); 
+  }
+  else {
+    Keyboard.release( '-' );
+  }
+
+            
+  if (digitalRead(swpin) == LOW)
+  {
+    Keyboard.press( 0xB0 );
+  }
+  else {
+    Keyboard.release( 0xB0 );
+  }
+
+
+
+  
   delay(10);
 }
+
+
+
+
+int getEncoderTurn(void)
+{
+  int result = 0;
+  int newA = digitalRead(clpin);
+  int newB = digitalRead(dtpin);
+  if (newA != oldA || newB != oldB)
+  {
+    if (oldA == HIGH && newA == LOW)
+    {
+      result = (oldB * 2 - 1);
+    }
+  }
+  oldA = newA;
+  oldB = newB;
+  return result;
+}
+
